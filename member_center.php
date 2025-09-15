@@ -1,35 +1,36 @@
 <?php
-session_start();
+// 使用共用初始化檔以統一 session 與 DB
+require_once __DIR__ . '/inc/init.php';
 if (!isset($_SESSION['user_id'])) {
   header('Location: login.php');
   exit();
 }
-$dsn = "mysql:host=localhost;dbname=food_forum;charset=utf8";
-$db_user = "root";
-$db_pass = "";
-$options = [
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-];
-try {
-  $pdo = new PDO($dsn, $db_user, $db_pass, $options);
-  $stmt = $pdo->prepare("SELECT * FROM members WHERE id = :id");
-  $stmt->execute(['id' => $_SESSION['user_id']]);
-  $member = $stmt->fetch();
-} catch (PDOException $e) {
+// 以 mysqli 取得會員資料，這樣跟其他 API 的風格一致，會比較容易給新手理解
+$member = null;
+$sql = "SELECT * FROM members WHERE id = ? LIMIT 1";
+$stmt = $conn->prepare($sql);
+if ($stmt) {
+  $stmt->bind_param('i', $_SESSION['user_id']);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $member = $res->fetch_assoc();
+  $stmt->close();
+} else {
   $member = null;
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>美食論壇</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=<?= file_exists(__DIR__ . '/styles.css') ? filemtime(__DIR__ . '/styles.css') : time() ?>">
 </head>
+
 <body>
-<?php include 'header.php';?>
+  <?php include 'header.php'; ?>
   <main class="forum-main container">
     <section class="forum-content">
       <div class="post-card" style="max-width:520px;margin:0 auto;">
@@ -46,9 +47,13 @@ try {
             <hr>
             <h3>我發表的文章</h3>
             <?php
-              $stmt2 = $pdo->prepare("SELECT id, title, created_at FROM posts WHERE author_id = :uid ORDER BY created_at DESC");
-              $stmt2->execute(['uid' => $member['id']]);
-              $my_posts = $stmt2->fetchAll();
+            // 取得我發表的文章（mysqli）
+            $stmt2 = $conn->prepare("SELECT id, title, created_at FROM posts WHERE author_id = ? ORDER BY created_at DESC");
+            $stmt2->bind_param('i', $member['id']);
+            $stmt2->execute();
+            $res2 = $stmt2->get_result();
+            $my_posts = $res2->fetch_all(MYSQLI_ASSOC);
+            $stmt2->close();
             ?>
             <?php if ($my_posts): ?>
               <ul class="article-list">
@@ -62,9 +67,13 @@ try {
             <hr>
             <h3>我留言過的文章</h3>
             <?php
-              $stmt3 = $pdo->prepare("SELECT DISTINCT posts.id, posts.title, posts.created_at FROM comments JOIN posts ON comments.post_id = posts.id WHERE comments.member_id = :uid ORDER BY posts.created_at DESC");
-              $stmt3->execute(['uid' => $member['id']]);
-              $commented_posts = $stmt3->fetchAll();
+            // 取得我留言過的文章（mysqli）
+            $stmt3 = $conn->prepare("SELECT DISTINCT posts.id, posts.title, posts.created_at FROM comments JOIN posts ON comments.post_id = posts.id WHERE comments.member_id = ? ORDER BY posts.created_at DESC");
+            $stmt3->bind_param('i', $member['id']);
+            $stmt3->execute();
+            $res3 = $stmt3->get_result();
+            $commented_posts = $res3->fetch_all(MYSQLI_ASSOC);
+            $stmt3->close();
             ?>
             <?php if ($commented_posts): ?>
               <ul class="article-list">
@@ -82,8 +91,9 @@ try {
       </div>
     </section>
   </main>
-<?php
+  <?php
   // Include footer
-  include 'footer.php';?>
+  include 'footer.php'; ?>
 </body>
+
 </html>

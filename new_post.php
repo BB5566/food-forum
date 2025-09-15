@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>新增文章 - 美食論壇</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=<?= file_exists(__DIR__ . '/styles.css') ? filemtime(__DIR__ . '/styles.css') : time() ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor/dist/css/suneditor.min.css">
   <style>
-    .img-preview { max-width: 220px; max-height: 180px; margin-top: 10px; border-radius: 8px; }
+    .img-preview {
+      max-width: 220px;
+      max-height: 180px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
   </style>
 </head>
+
 <body>
   <?php include 'header.php'; ?>
   <main class="container">
@@ -36,7 +43,7 @@
       <div>
         <label for="image">插入圖片：</label>
         <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
-        <img id="imgPreview" class="img-preview" style="display:none;"/>
+        <img id="imgPreview" class="img-preview" style="display:none;" />
       </div>
       <button type="submit">送出</button>
     </form>
@@ -62,6 +69,7 @@
         }
       });
     });
+
     function previewImage(event) {
       const input = event.target;
       const preview = document.getElementById('imgPreview');
@@ -80,4 +88,5 @@
   </script>
   <?php include 'footer.php'; ?>
 </body>
+
 </html>

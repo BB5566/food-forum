@@ -1,41 +1,37 @@
+
 <?php
-$dsn = "mysql:host=localhost;dbname=food_forum;charset=utf8";
-$username = "root";
-$password = "";
-$options = [
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-];
-$sql = "INSERT INTO `members` (`username`, `password`, `nickname`, `email`, `birthday`) VALUES (:username, :password, :nickname, :email, :birthday)";
-try {
-  $pdo = new PDO($dsn, $username, $password, $options);
-  $stmt = $pdo->prepare($sql);
+// 註冊處理（使用 mysqli，風格與其他 API 一致）
+require_once __DIR__ . '/../inc/init.php';
 
-  // Prepare the data
-  $post = [];
-  $post['username'] = $_POST['username'] ?? '';
-  // Hash the password
-  $post['password'] = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT);
-  $post['nickname'] = $_POST['nickname'] ?? '';
-  $post['email'] = $_POST['email'] ?? '';
-  $post['birthday'] = $_POST['birthday'] ?? '';
+$username = trim($_POST['username'] ?? '');
+$password = $_POST['password'] ?? '';
+$nickname = trim($_POST['nickname'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$birthday = trim($_POST['birthday'] ?? '');
 
-  // Execute the statement
-  if ($stmt->execute($post)) {
-    echo "<script>alert('註冊成功！');window.location.href='../login.php';</script>";
+if ($username === '' || $password === '') {
+  echo "<script>alert('請填寫帳號與密碼');history.back();</script>";
+  exit();
+}
+
+$hash = password_hash($password, PASSWORD_DEFAULT);
+
+$sql = "INSERT INTO members (username, password, nickname, email, birthday) VALUES (?, ?, ?, ?, ?)";
+$stmt = $conn->prepare($sql);
+if (!$stmt) {
+  echo "<script>alert('資料庫錯誤，請稍後再試');history.back();</script>";
+  exit();
+}
+$stmt->bind_param('sssss', $username, $hash, $nickname, $email, $birthday);
+if ($stmt->execute()) {
+  echo "<script>alert('註冊成功！');window.location.href='../login.php';</script>";
+  exit();
+} else {
+  if ($conn->errno === 1062) {
+    echo "<script>alert('此帳號已被註冊，請換一個帳號。');history.back();</script>";
   } else {
     echo "<script>alert('註冊失敗，請稍後再試。');history.back();</script>";
   }
-} catch (PDOException $e) {
-  if ($e->getCode() == 23000) {
-    // Duplicate entry
-    echo "<script>alert('此帳號已被註冊，請換一個帳號。');history.back();</script>";
-  } else {
-    echo "<script>alert('錯誤: ".addslashes($e->getMessage())."');history.back();</script>";
-  }
 }
-$post['username'] = $_POST['username'] ?? '';
-$post['password'] = $_POST['password'] ?? '';
-$post['nickname'] = $_POST['nickname'] ?? '';
-$post['email'] = $_POST['email'] ?? '';
-$post['birthday'] = $_POST['birthday'] ?? '';
+$stmt->close();
+$conn->close();

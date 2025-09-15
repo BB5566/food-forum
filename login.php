@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>美食論壇</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=<?= file_exists(__DIR__ . '/styles.css') ? filemtime(__DIR__ . '/styles.css') : time() ?>">
 </head>
+
 <body>
-<?php include 'header.php';?>
+  <?php include 'header.php'; ?>
   <main class="forum-main container">
     <section class="login-section post-card">
       <h2 class="form-title">會員登入</h2>
@@ -29,6 +31,7 @@
       </form>
     </section>
   </main>
-<?php include 'footer.php';?>
+  <?php include 'footer.php'; ?>
 </body>
+
 </html>
