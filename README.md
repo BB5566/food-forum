@@ -79,80 +79,12 @@ food-forum/
 - **錯誤處理**：完善的異常處理機制
 - **效能優化**：分頁載入與懶載入圖片
 
-## 🚀 快速開始
-
-### 環境需求
-
-- PHP 8.0+
-- MySQL 5.7+
-- GD 擴展（圖片處理）
-
-### 安裝步驟
-
-1. **下載專案**
-
-   ```bash
-   git clone https://github.com/yourusername/food-forum.git
-   cd food-forum
-   ```
-
-2. **資料庫設定**
-
-   ```bash
-   # 建立資料庫
-   mysql -u root -p < members.sql
-
-   # 設定環境變數（建立 .env 文件）
-   DB_SERVER=localhost
-   DB_USERNAME=your_username
-   DB_PASSWORD=your_password
-   DB_NAME=food_forum
-   ```
-
-3. **權限設定**
-
-   ```bash
-   # 設定上傳目錄權限
-   chmod 755 uploads/
-   ```
-
-4. **啟動服務**
-
-   ```bash
-   php -S localhost:8000
-   ```
-
-5. **訪問網站**
-   開啟瀏覽器訪問 `http://localhost:8000`
-
 ## 📱 頁面展示
 
 - **首頁**：文章列表與分類導航
 - **會員中心**：個人資料與文章管理
 - **發文頁面**：支援圖片上傳的編輯器
 - **文章詳情**：完整內容與留言區
-
-## 🔧 自訂設定
-
-### 分類管理
-
-在 `inc/config.php` 中修改允許的分類：
-
-```php
-'CATEGORIES' => ['台灣小吃', '異國料理', '甜點飲品', '素食專區', '其他']
-```
-
-### 樣式調整
-
-`styles.css` 使用 CSS 自訂屬性，輕鬆修改主題色彩：
-
-```css
-:root {
-  --primary-black: #1a1a1a;
-  --accent-warm: #f5f5f0;
-  /* ... */
-}
-```
 
 ## 📈 專案成果
 
@@ -171,3 +103,4 @@ food-forum/
 ---
 
 **🍽️ 享受美食，分享快樂！**
+
