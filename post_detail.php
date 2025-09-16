@@ -64,15 +64,6 @@ while ($row = $result_c->fetch_assoc()) {
 
       <div class="post-content"><?= sanitize_html($post['content']) ?></div>
       <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
-        <div style="margin-top:12px;padding:8px;border:1px dashed #ccc;background:#fff;">
-          <strong>DEBUG (admin only)</strong>
-          <div>原始內容（raw from DB, escaped for safety）:</div>
-          <pre style="white-space:pre-wrap;"><?= htmlspecialchars($post['content']) ?></pre>
-          <div>sanitize_html 處理後（escaped show）:</div>
-          <pre style="white-space:pre-wrap;"><?= htmlspecialchars(sanitize_html($post['content'])) ?></pre>
-        </div>
-      <?php endif; ?>
-      <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
         <form action="api/delete_post.php" method="post" onsubmit="return confirm('確定要刪除這篇貼文嗎？此動作無法復原！');" style="margin-top:16px;">
           <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
           <button type="submit" style="background:#d32f2f;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-weight:700;cursor:pointer;">刪除貼文（管理員）</button>
@@ -103,24 +94,7 @@ while ($row = $result_c->fetch_assoc()) {
   </main>
   <?php $conn->close(); ?>
   <?php include 'footer.php'; ?>
-  <script>
-    // Debug: log delete form action and capture submit attempts
-    (function() {
-      try {
-        const delForm = document.querySelector('form[action="api/delete_post.php"]');
-        if (delForm) {
-          console.log('Delete form action (raw):', delForm.getAttribute('action'));
-          delForm.addEventListener('submit', function(e) {
-            console.log('Delete form submit triggered. action=', delForm.action, 'method=', delForm.method);
-          });
-        } else {
-          console.log('No admin delete form found on this page.');
-        }
-      } catch (err) {
-        console.error('post_detail debug error:', err);
-      }
-    })();
-  </script>
+  
 </body>
 
 </html>

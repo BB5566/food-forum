@@ -16,7 +16,6 @@ $siteName = isset($CONFIG) ? ($CONFIG->SITE_NAME ?? '網站') : '網站';
     <button class="nav-toggle" aria-expanded="false" aria-label="切換導覽">☰</button>
     <nav class="nav-links" role="navigation">
       <a href="index.php">首頁</a>
-      <a href="#">熱門主題</a>
       <a href="./new_post.php">發表文章</a>
       <a href="member_center.php">會員中心</a>
     </nav>
