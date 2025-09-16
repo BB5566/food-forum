@@ -349,9 +349,16 @@ textarea {
 .forum-main {
   padding: var(--space-8) 0;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  /* Constrain content width and center the layout */
+  grid-template-columns: 280px minmax(0, 820px);
   gap: var(--space-8);
   align-items: start;
+  justify-content: center; /* Center the grid columns */
+}
+
+/* New class for simple, single-column pages */
+.simple-main {
+  padding: var(--space-8) 0;
 }
 
 .forum-sidebar {
@@ -499,7 +506,7 @@ textarea {
 .login-section,
 .reg-section,
 .new-post-section {
-  max-width: 400px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
@@ -725,4 +732,19 @@ textarea:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--primary-black);
   outline-offset: 2px;
+}
+
+/* Style for post category from template.php */
+.post-category {
+  color: #ffd54f;
+  font-size: 0.98rem;
+  margin-bottom: 6px;
+}
+
+/* From new_post.php */
+.img-preview {
+  max-width: 220px;
+  max-height: 180px;
+  margin-top: 10px;
+  border-radius: 8px;
 }

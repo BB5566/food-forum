@@ -1,3 +1,13 @@
+<?php
+// new_post.php - new post page
+require_once __DIR__ . '/inc/init.php'; // include init to get config
+
+// Redirect if not logged in
+if (!isset($_SESSION['user_id'])) {
+  header('Location: login.php');
+  exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="zh-TW">
 
@@ -7,46 +17,38 @@
   <title>新增文章 - 美食論壇</title>
   <link rel="stylesheet" href="styles.css?v=<?= file_exists(__DIR__ . '/styles.css') ? filemtime(__DIR__ . '/styles.css') : time() ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor/dist/css/suneditor.min.css">
-  <style>
-    .img-preview {
-      max-width: 220px;
-      max-height: 180px;
-      margin-top: 10px;
-      border-radius: 8px;
-    }
-  </style>
 </head>
 
 <body>
   <?php include 'header.php'; ?>
-  <main class="container">
-    <h2>新增文章</h2>
-    <form action="api/new_post_process.php" method="post" enctype="multipart/form-data">
-      <div>
-        <label for="title">標題：</label>
-        <input type="text" id="title" name="title" required>
-      </div>
-      <div>
-        <label for="category">分類：</label>
-        <select id="category" name="category" required>
-          <option value="台灣小吃">台灣小吃</option>
-          <option value="異國料理">異國料理</option>
-          <option value="甜點飲品">甜點飲品</option>
-          <option value="素食專區">素食專區</option>
-          <option value="其他">其他</option>
-        </select>
-      </div>
-      <div>
-        <label for="content">內容：</label>
-        <textarea id="content" name="content" rows="8"></textarea>
-      </div>
-      <div>
-        <label for="image">插入圖片：</label>
-        <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
-        <img id="imgPreview" class="img-preview" style="display:none;" />
-      </div>
-      <button type="submit">送出</button>
-    </form>
+  <main class="simple-main container">
+    <section class="new-post-section post-card">
+      <h2 class="form-title">發表新文章</h2>
+      <form action="api/new_post_process.php" method="post" enctype="multipart/form-data" class="new-post-form">
+        <div class="form-group">
+          <label for="title">標題：</label>
+          <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+          <label for="category">分類：</label>
+          <select id="category" name="category" required>
+            <?php foreach ($CONFIG->CATEGORIES as $category) : ?>
+              <option value="<?= htmlspecialchars($category) ?>"><?= htmlspecialchars($category) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="content">內容：</label>
+          <textarea id="content" name="content" rows="8"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="image">插入圖片：</label>
+          <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+          <img id="imgPreview" class="img-preview" style="display:none;" />
+        </div>
+        <button type="submit">送出</button>
+      </form>
+    </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/suneditor@2.41.3/dist/suneditor.min.js"></script>
   <script>
@@ -60,12 +62,13 @@
           ]
         });
       } else {
-        alert('SunEditor 載入失敗，請檢查網路或 CDN。');
+        console.error('SunEditor 載入失敗，請檢查網路或 CDN。');
       }
       // 送出前同步內容
       document.querySelector('form').addEventListener('submit', function(e) {
         if (editorInstance) {
-          document.getElementById('content').value = editorInstance.getContents();
+          // SunEditor 的內容更新到 textarea
+          editorInstance.save();
         }
       });
     });

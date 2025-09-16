@@ -9,7 +9,6 @@ $siteName = isset($CONFIG) ? ($CONFIG->SITE_NAME ?? '網站') : '網站';
 <header class="forum-header glassy-header">
   <div class="container header-flex">
     <div class="header-logo-title">
-      <img src="./img/logo.png" alt="正方形logo" class="logo-square">
       <img src="./img/w-logo.png" alt="橫式logo" class="logo-wide">
       <h1><?= htmlspecialchars($siteName) ?></h1>
     </div>

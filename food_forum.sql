@@ -64,7 +64,7 @@ CREATE TABLE `members` (
 --
 
 INSERT INTO `members` (`id`, `username`, `password`, `nickname`, `email`, `birthday`, `created_time`, `is_admin`) VALUES
-(1, 'admin', '$2y$10$zJLP5QwCoMjzv3kbLV2MBe5tLEsANUpBVdqXnHp2T4TxK6SWqPWMS', 'BB', 'mobbsong@gmail.com', '1992-05-06', '2025-09-15 00:30:02', 1);
+(1, 'admin', '$2y$10$zJLP5QwCoMjzv3kbLV2MBe5tLEsANUpBVdqXnHp2T4TxK6SWqPWMS', 'BB', '5566@gmail.com', '1992-05-06', '2025-09-15 00:30:02', 1);
 
 -- --------------------------------------------------------
 

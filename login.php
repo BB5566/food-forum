@@ -10,7 +10,7 @@
 
 <body>
   <?php include 'header.php'; ?>
-  <main class="forum-main container">
+  <main class="simple-main container">
     <section class="login-section post-card">
       <h2 class="form-title">會員登入</h2>
       <?php
