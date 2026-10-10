@@ -1,4 +1,3 @@
-
 <?php
 // 註冊處理（使用 mysqli，風格與其他 API 一致）
 require_once __DIR__ . '/../inc/init.php';
