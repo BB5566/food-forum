@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/inc/init.php'; // 先啟動 session，CSRF token 才存得進去 ?>
 <!DOCTYPE html>
 <html lang="en">
 
