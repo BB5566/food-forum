@@ -25,6 +25,7 @@ if (!isset($_SESSION['user_id'])) {
     <section class="new-post-section post-card">
       <h2 class="form-title">發表新文章</h2>
       <form action="api/new_post_process.php" method="post" enctype="multipart/form-data" class="new-post-form">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <div class="form-group">
           <label for="title">標題：</label>
           <input type="text" id="title" name="title" required>

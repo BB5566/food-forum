@@ -34,23 +34,22 @@
   $countSql = "SELECT COUNT(*) as c {$sqlBase} {$sqlWhere}";
   $countStmt = $conn->prepare($countSql);
   if ($isCategoryFiltered) {
-    $countStmt->bind_param('s', $category);
+    $countStmt->execute([$category]);
+  } else {
+    $countStmt->execute();
   }
-  $countStmt->execute();
-  $total = $countStmt->get_result()->fetch_assoc()['c'] ?? 0;
-  $countStmt->close();
+  $total = $countStmt->fetch()['c'] ?? 0;
   $totalPages = max(1, ceil($total / $pageSize));
 
   // Get posts for the current page
   $postsSql = "SELECT posts.*, members.nickname {$sqlBase} {$sqlWhere} ORDER BY created_at DESC LIMIT ?, ?";
   $postsStmt = $conn->prepare($postsSql);
   if ($isCategoryFiltered) {
-    $postsStmt->bind_param('sii', $category, $offset, $pageSize);
+    $postsStmt->execute([$category, $offset, $pageSize]);
   } else {
-    $postsStmt->bind_param('ii', $offset, $pageSize);
+    $postsStmt->execute([$offset, $pageSize]);
   }
-  $postsStmt->execute();
-  $result = $postsStmt->get_result();
+  $posts = $postsStmt->fetchAll();
   // -- End of Refactored Logic --
   ?>
   <main class="forum-main container">
@@ -64,10 +63,10 @@
       </ul>
     </aside>
     <section class="forum-content">
-      <?php if ($result && $result->num_rows > 0): ?>
-        <?php while ($row = $result->fetch_assoc()): ?>
+      <?php if (count($posts) > 0): ?>
+        <?php foreach ($posts as $row): ?>
           <?= render_post_card($row, $CONFIG) /* Pass $CONFIG object */ ?>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       <?php else: ?>
         <div class="post-card">目前尚無文章，歡迎發表第一篇！</div>
       <?php endif; ?>
@@ -75,14 +74,13 @@
         <?php if ($page > 1): ?>
           <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page - 1 ?>">上一頁</a>
         <?php endif; ?>
-        <span>第 <?= $page ?> 頁 / 共 <?= $totalPages ?> 頁</span>
+        <span>第 <?= htmlspecialchars((string)$page, ENT_QUOTES, 'UTF-8') ?> 頁 / 共 <?= htmlspecialchars((string)$totalPages, ENT_QUOTES, 'UTF-8') ?> 頁</span>
         <?php if ($page < $totalPages): ?>
           <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page + 1 ?>">下一頁</a>
         <?php endif; ?>
       </div>
     </section>
   </main>
-  <?php $conn->close(); ?>
   <?php include 'footer.php'; ?>
 </body>
 

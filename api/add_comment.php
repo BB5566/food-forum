@@ -8,13 +8,14 @@ if (!isset($_SESSION['user_id'])) {
   header('Location: ../login.php');
   exit();
 }
+require_csrf_token();
 
-$post_id = $_POST['post_id'] ?? '';
+$post_id = (int)($_POST['post_id'] ?? 0);
 $content = trim($_POST['content'] ?? '');
-$member_id = $_SESSION['user_id'];
+$member_id = (int)$_SESSION['user_id'];
 
 // 檢查必要欄位
-if (!$post_id || !$content) {
+if ($post_id <= 0 || $content === '') {
   echo '請填寫留言內容';
   exit();
 }
@@ -22,12 +23,10 @@ if (!$post_id || !$content) {
 // 用 prepared statement 寫入留言
 $sql = "INSERT INTO comments (post_id, member_id, content) VALUES (?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param('iis', $post_id, $member_id, $content);
-if ($stmt->execute()) {
+$stmt->execute([$post_id, $member_id, $content]);
+if ($stmt->rowCount() > 0) {
   header('Location: ../post_detail.php?id=' . $post_id);
   exit();
 } else {
   echo '留言失敗，請稍後再試。';
 }
-$stmt->close();
-$conn->close();

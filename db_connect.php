@@ -2,7 +2,7 @@
 /**
  * Food Forum 資料庫連線
  * 支援 SQLite 和 MySQL 雙模式
- * 優先使用 SQLite，方便本地開發與展示
+ * 一律使用 PDO 與 prepared statements
  */
 
 // 載入環境變數
@@ -22,30 +22,20 @@ if (file_exists($envFile)) {
 }
 
 // 讀取資料庫類型，預設使用 SQLite
-$dbType = $env['DB_TYPE'] ?? 'sqlite';
+$dbType = strtolower($env['DB_TYPE'] ?? 'sqlite');
 
-if ($dbType === 'sqlite') {
-    // SQLite 連線設定
-    $dbPath = $env['DB_PATH'] ?? __DIR__ . '/database/food_forum.sqlite';
+try {
+    if ($dbType === 'sqlite') {
+        $dbPath = $env['DB_PATH'] ?? __DIR__ . '/database/food_forum.sqlite';
+        $dbDir = dirname($dbPath);
+        if (!is_dir($dbDir)) {
+            mkdir($dbDir, 0755, true);
+        }
 
-    // 確保資料庫目錄存在
-    $dbDir = dirname($dbPath);
-    if (!is_dir($dbDir)) {
-        mkdir($dbDir, 0755, true);
-    }
-
-    // 檢查資料庫是否存在
-    $dbExists = file_exists($dbPath);
-
-    try {
+        $dbExists = file_exists($dbPath);
         $pdo = new PDO("sqlite:$dbPath");
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-        // 啟用外鍵約束（SQLite 預設關閉）
         $pdo->exec('PRAGMA foreign_keys = ON;');
 
-        // 如果是新資料庫，執行初始化
         if (!$dbExists) {
             $schemaFile = __DIR__ . '/database/schema.sqlite.sql';
             if (file_exists($schemaFile)) {
@@ -53,136 +43,21 @@ if ($dbType === 'sqlite') {
                 $pdo->exec($sql);
             }
         }
+    } else {
+        $servername = $env['DB_SERVER'] ?? 'localhost';
+        $username = $env['DB_USERNAME'] ?? 'root';
+        $password = $env['DB_PASSWORD'] ?? '';
+        $dbname = $env['DB_NAME'] ?? 'food_forum';
+        $charset = $env['DB_CHARSET'] ?? 'utf8mb4';
 
-        // 建立相容的 mysqli wrapper（為了相容舊程式碼）
-        $conn = new class($pdo) {
-            private $pdo;
-            public $connect_error = null;
-
-            public function __construct($pdo) {
-                $this->pdo = $pdo;
-            }
-
-            public function query($sql) {
-                try {
-                    $stmt = $this->pdo->query($sql);
-                    return new class($stmt) {
-                        private $stmt;
-                        public $num_rows;
-
-                        public function __construct($stmt) {
-                            $this->stmt = $stmt;
-                            $this->num_rows = $stmt->rowCount();
-                        }
-
-                        public function fetch_assoc() {
-                            return $this->stmt->fetch(PDO::FETCH_ASSOC);
-                        }
-
-                        public function fetch_all($mode = MYSQLI_ASSOC) {
-                            return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
-                        }
-                    };
-                } catch (PDOException $e) {
-                    return false;
-                }
-            }
-
-            public function prepare($sql) {
-                // 將 ? 佔位符轉換為 PDO 格式
-                $stmt = $this->pdo->prepare($sql);
-                return new class($stmt, $this->pdo) {
-                    private $stmt;
-                    private $pdo;
-                    private $types = '';
-                    private $params = [];
-                    public $affected_rows = 0;
-                    public $insert_id = 0;
-
-                    public function __construct($stmt, $pdo) {
-                        $this->stmt = $stmt;
-                        $this->pdo = $pdo;
-                    }
-
-                    public function bind_param($types, &...$params) {
-                        $this->types = $types;
-                        $this->params = $params;
-                        return true;
-                    }
-
-                    public function execute() {
-                        try {
-                            $result = $this->stmt->execute($this->params);
-                            $this->affected_rows = $this->stmt->rowCount();
-                            $this->insert_id = $this->pdo->lastInsertId();
-                            return $result;
-                        } catch (PDOException $e) {
-                            return false;
-                        }
-                    }
-
-                    public function get_result() {
-                        return new class($this->stmt) {
-                            private $stmt;
-                            public $num_rows;
-
-                            public function __construct($stmt) {
-                                $this->stmt = $stmt;
-                                $this->num_rows = $stmt->rowCount();
-                            }
-
-                            public function fetch_assoc() {
-                                return $this->stmt->fetch(PDO::FETCH_ASSOC);
-                            }
-
-                            public function fetch_all($mode = MYSQLI_ASSOC) {
-                                return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
-                            }
-                        };
-                    }
-
-                    public function close() {
-                        $this->stmt = null;
-                    }
-                };
-            }
-
-            public function real_escape_string($str) {
-                // PDO 使用 prepared statements，這裡只是相容層
-                return addslashes($str);
-            }
-
-            public function close() {
-                $this->pdo = null;
-            }
-
-            public function __get($name) {
-                if ($name === 'insert_id') {
-                    return $this->pdo->lastInsertId();
-                }
-                if ($name === 'affected_rows') {
-                    return 0;
-                }
-                return null;
-            }
-        };
-
-    } catch (PDOException $e) {
-        die('SQLite 資料庫連線失敗: ' . $e->getMessage());
+        $dsn = "mysql:host={$servername};dbname={$dbname};charset={$charset}";
+        $pdo = new PDO($dsn, $username, $password);
     }
 
-} else {
-    // MySQL 連線設定（向下相容）
-    $servername = $env['DB_SERVER'] ?? 'localhost';
-    $username = $env['DB_USERNAME'] ?? 'root';
-    $password = $env['DB_PASSWORD'] ?? '';
-    $dbname = $env['DB_NAME'] ?? 'food_forum';
-
-    $conn = new mysqli($servername, $username, $password, $dbname);
-    if ($conn->connect_error) {
-        die("資料庫連線失敗，請檢查設定：" . $conn->connect_error);
-    }
-
-    // 設定字元編碼
-    $conn->set_charset("utf8mb4");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    $conn = $pdo; // 保留既有變數名稱
+} catch (PDOException $e) {
+    die('資料庫連線失敗，請檢查設定：' . $e->getMessage());
 }
