@@ -18,3 +18,32 @@ if (!empty($CONFIG->DEV_MODE)) {
     @mkdir($uploadDir, 0755, true);
   }
 }
+
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if (!function_exists('csrf_token')) {
+  function csrf_token()
+  {
+    return $_SESSION['csrf_token'] ?? '';
+  }
+}
+
+if (!function_exists('verify_csrf_token')) {
+  function verify_csrf_token($token)
+  {
+    if (!is_string($token) || $token === '') return false;
+    return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+  }
+}
+
+if (!function_exists('require_csrf_token')) {
+  function require_csrf_token()
+  {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verify_csrf_token($_POST['csrf_token'] ?? '')) {
+      http_response_code(403);
+      exit('CSRF 驗證失敗，請重新操作。');
+    }
+  }
+}

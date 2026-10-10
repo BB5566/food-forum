@@ -6,6 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../login.php');
     exit();
 }
+require_csrf_token();
 
 $username_input = $_POST['username'] ?? '';
 $password_input = $_POST['password'] ?? '';
@@ -15,19 +16,14 @@ if ($username_input === '' || $password_input === '') {
     exit();
 }
 
-// 以 prepared statement 取得使用者
+// 以 PDO prepared statement 取得使用者
 $sql = "SELECT id, username, password, nickname, is_admin FROM members WHERE username = ? LIMIT 1";
 $stmt = $conn->prepare($sql);
-if (!$stmt) {
-    header('Location: ../login.php?error=資料庫錯誤');
-    exit();
-}
-$stmt->bind_param('s', $username_input);
-$stmt->execute();
-$res = $stmt->get_result();
-$user = $res->fetch_assoc();
+$stmt->execute([$username_input]);
+$user = $stmt->fetch();
 
 if ($user && password_verify($password_input, $user['password'])) {
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['nickname'] = $user['nickname'];

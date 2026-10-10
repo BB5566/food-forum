@@ -9,27 +9,24 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
     echo '權限不足';
     exit();
 }
+require_csrf_token();
 
-$post_id = $_POST['post_id'] ?? '';
-if (!$post_id || !is_numeric($post_id)) {
+$post_id = (int)($_POST['post_id'] ?? 0);
+if ($post_id <= 0) {
     echo '無效的文章編號';
     exit();
 }
 
 // 先刪除這篇貼文的所有留言
 $stmt1 = $conn->prepare('DELETE FROM comments WHERE post_id = ?');
-$stmt1->bind_param('i', $post_id);
-$stmt1->execute();
-$stmt1->close();
+$stmt1->execute([$post_id]);
 
 // 再刪除貼文本身
 $stmt2 = $conn->prepare('DELETE FROM posts WHERE id = ?');
-$stmt2->bind_param('i', $post_id);
-if ($stmt2->execute()) {
+$stmt2->execute([$post_id]);
+if ($stmt2->rowCount() > 0) {
     header('Location: ../index.php');
     exit();
 } else {
     echo '刪除失敗';
 }
-$stmt2->close();
-$conn->close();
