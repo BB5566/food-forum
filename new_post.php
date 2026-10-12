@@ -9,19 +9,20 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant-TW">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新增文章 - 美食論壇</title>
+  <title>新增文章 - <?= htmlspecialchars($CONFIG->SITE_NAME ?? '美食論壇') ?></title>
   <link rel="stylesheet" href="styles.css?v=<?= file_exists(__DIR__ . '/styles.css') ? filemtime(__DIR__ . '/styles.css') : time() ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor/dist/css/suneditor.min.css">
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link">跳至主要內容</a>
   <?php include 'header.php'; ?>
-  <main class="simple-main container">
+  <main id="main-content" class="simple-main container">
     <section class="new-post-section post-card">
       <h2 class="form-title">發表新文章</h2>
       <form action="api/new_post_process.php" method="post" enctype="multipart/form-data" class="new-post-form">
@@ -45,9 +46,12 @@ if (!isset($_SESSION['user_id'])) {
         <div class="form-group">
           <label for="image">插入圖片：</label>
           <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
-          <img id="imgPreview" class="img-preview" style="display:none;" />
+          <img id="imgPreview" class="img-preview" alt="文章圖片預覽" style="display:none;" />
         </div>
-        <button type="submit">送出</button>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">送出</button>
+          <a href="index.php" class="btn btn-secondary">取消</a>
+        </div>
       </form>
     </section>
   </main>

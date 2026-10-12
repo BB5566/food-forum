@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant-TW">
 
 <head>
   <meta charset="UTF-8">
@@ -9,6 +9,7 @@
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link">跳至主要內容</a>
 
   <?php
   // 初始化並載入共用 template
@@ -52,13 +53,14 @@
   $posts = $postsStmt->fetchAll();
   // -- End of Refactored Logic --
   ?>
-  <main class="forum-main container">
-    <aside class="forum-sidebar">
+  <main id="main-content" class="forum-main container">
+    <aside class="forum-sidebar" aria-label="文章分類">
       <h2>分類</h2>
       <ul>
-        <li><a href="index.php">全部</a></li>
+        <li><a href="index.php" class="<?= empty($category) ? 'active' : '' ?>"<?= empty($category) ? ' aria-current="page"' : '' ?>>全部</a></li>
         <?php foreach ($CONFIG->CATEGORIES as $cat): ?>
-          <li><a href="?category=<?= urlencode($cat) ?>"><?= htmlspecialchars($cat) ?></a></li>
+          <?php $isCatActive = ($category === $cat); ?>
+          <li><a href="?category=<?= urlencode($cat) ?>" class="<?= $isCatActive ? 'active' : '' ?>"<?= $isCatActive ? ' aria-current="page"' : '' ?>><?= htmlspecialchars($cat) ?></a></li>
         <?php endforeach; ?>
       </ul>
     </aside>
@@ -68,17 +70,17 @@
           <?= render_post_card($row, $CONFIG) /* Pass $CONFIG object */ ?>
         <?php endforeach; ?>
       <?php else: ?>
-        <div class="post-card">目前尚無文章，歡迎發表第一篇！</div>
+        <div class="post-card empty-card"><p class="empty-tip">目前尚無文章，歡迎發表第一篇！</p></div>
       <?php endif; ?>
-      <div class="pagination">
+      <nav class="pagination" aria-label="分頁導覽">
         <?php if ($page > 1): ?>
-          <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page - 1 ?>">上一頁</a>
+          <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page - 1 ?>" aria-label="上一頁">上一頁</a>
         <?php endif; ?>
-        <span>第 <?= htmlspecialchars((string)$page, ENT_QUOTES, 'UTF-8') ?> 頁 / 共 <?= htmlspecialchars((string)$totalPages, ENT_QUOTES, 'UTF-8') ?> 頁</span>
+        <span class="pagination-info" aria-current="page">第 <?= htmlspecialchars((string)$page, ENT_QUOTES, 'UTF-8') ?> 頁 / 共 <?= htmlspecialchars((string)$totalPages, ENT_QUOTES, 'UTF-8') ?> 頁</span>
         <?php if ($page < $totalPages): ?>
-          <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page + 1 ?>">下一頁</a>
+          <a href="?<?= $category ? 'category=' . urlencode($category) . '&' : '' ?>page=<?= $page + 1 ?>" aria-label="下一頁">下一頁</a>
         <?php endif; ?>
-      </div>
+      </nav>
     </section>
   </main>
   <?php include 'footer.php'; ?>
